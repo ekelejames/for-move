@@ -1,0 +1,14 @@
+FROM confluentinc/cp-kafka-rest:7.6.0
+
+# Switch to root to install necessary tools
+USER root
+
+# Create the target directory
+RUN mkdir -p /share/java/kafka-rest
+
+# Download confluent-security-plugins 
+RUN curl -o /share/java/kafka-rest/confluent-security-plugins-common-7.1.1.jar https://packages.confluent.io/maven/io/confluent/confluent-security-plugins-common/7.1.1/confluent-security-plugins-common-7.1.1.jar && \
+    curl -o /share/java/kafka-rest/confluent-kafka-rest-security-plugin-7.6.1.jar https://packages.confluent.io/maven/io/confluent/confluent-kafka-rest-security-plugin/7.6.1/confluent-kafka-rest-security-plugin-7.6.1.jar
+
+# Switch back to the appuser
+USER appuser

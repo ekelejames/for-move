@@ -1,0 +1,27 @@
+{
+    "title": "rls-perf-baseline",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "process-time": {"type": "integer"},
+        "captive": {"type": "string"},
+        "shelf": {"type": "string"},
+        "load": {"type": "string"},
+        "release": {"type": "string"},
+        "baseline-load": {"type": "string"},
+        "baseline-release": {"type": "string"},
+        "num-channels-before": {"type": "integer"},
+        "num-channels-after": {"type": "integer"},
+        "operation": {"type": "string"},
+        "result": {"type": "string"},
+        "reason": {"type": "string"},
+        "mean": {"type": "number"},
+        "stddev": {"type": "number"},
+        "min": {"type": "number"},
+        "max": {"type": "number"},
+        "percentile-50": {"type": "number"},
+        "percentile-90": {"type": "number"},
+        "percentile-99": {"type": "number"}
+    },
+    "additionalProperties": false
+}

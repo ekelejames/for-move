@@ -1,0 +1,8 @@
+kafka:
+  topic: sample_flat_schema_metric
+  bootstrap_servers: ${HOSTNAME}:29092
+  group_id: sample_flat_schema_metric_group
+  starting_offset: latest
+
+schema_registry:
+  url: http://${HOSTNAME}:8085

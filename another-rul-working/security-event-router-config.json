@@ -1,0 +1,84 @@
+// {
+//   "routes": {
+//     "crn:///kafka=*/group=*": {
+//       "consume": {
+//         "allowed": "confluent-audit-log-events",
+//         "denied": "confluent-audit-log-events"
+//       }
+//     },
+//     "crn:///kafka=*/topic=*": {
+//       "produce": {
+//         "allowed": "confluent-audit-log-events",
+//         "denied": "confluent-audit-log-events"
+//       },
+//       "consume": {
+//         "allowed": "confluent-audit-log-events",
+//         "denied": "confluent-audit-log-events"
+//       }
+//     }
+//   },
+//   "destinations": {
+//     "topics": {
+//       "confluent-audit-log-events": {
+//         "retention_ms": 7776000000
+//       }
+//     }
+//   },
+//   "default_topics": {
+//     "allowed": "confluent-audit-log-events",
+//     "denied": "confluent-audit-log-events"
+//   },
+//   "excluded_principals": [
+//     "User:kafka",
+//     "User:ANONYMOUS"
+//   ]
+// }
+
+
+{
+  "specversion": "1.0",
+  "id": "16adf541-c28f-486e-a509-47f11f8f4ac3",
+  "source": "crn:///kafka=xVwOh_nFSfq2tXYyxPXDTQ",
+  "type": "io.confluent.kafka.server/authorization",
+  "datacontenttype": "application/json",
+  "subject": "crn:///kafka=xVwOh_nFSfq2tXYyxPXDTQ",
+  "time": "2025-01-27T09:15:36.454035Z",
+  "route": "confluent-audit-log-events",
+  "data": {
+    "serviceName": "crn:///kafka=xVwOh_nFSfq2tXYyxPXDTQ",
+    "methodName": "kafka.CreateTopics",
+    "resourceName": "crn:///kafka=xVwOh_nFSfq2tXYyxPXDTQ",
+    "authenticationInfo": {
+      "principal": "User:admin",
+      "principalResourceId": "",
+      "identity": ""
+    },
+    "authorizationInfo": {
+      "granted": true,
+      "operation": "Create",
+      "resourceType": "Cluster",
+      "resourceName": "kafka-cluster",
+      "patternType": "LITERAL",
+      "superUserAuthorization": true,
+      "assignedPrincipals": [
+
+      ]
+    },
+    "request": {
+      "correlation_id": "15",
+      "client_id": "cluster-link--local-admin-1"
+    },
+    "requestMetadata": {
+      "request_id": "173796933645300001"
+    },
+    "clientAddress": [
+      {
+        "ip": "172.19.0.2",
+        "port": 0,
+        "internal": false
+      }
+    ]
+  }
+}
+
+

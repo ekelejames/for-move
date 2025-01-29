@@ -1,0 +1,20 @@
+{
+    "name": "sample-postgresql-sink-connector",
+    "config": {
+      "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+      "tasks.max": "1",
+      "topics": "sample_flat_schema_metric",
+      "connection.url": "jdbc:postgresql://postgres:5432/perf_server_database",
+      "connection.user": "postgres",
+      "connection.password": "postgres",
+      "table.name.format": "sample_flat_schema_metric",
+      "auto.create": "true",
+      "auto.evolve": "true",
+      "insert.mode": "insert",
+      "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+      "value.converter": "io.confluent.connect.json.JsonSchemaConverter",
+      "value.converter.schema.registry.url": "http://schema-registry:8085",
+      "value.converter.schemas.enable": "true",
+      "key.converter.schemas.enable": "false"
+    }
+}

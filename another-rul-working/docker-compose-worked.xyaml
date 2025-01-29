@@ -1,0 +1,338 @@
+services:
+  kafka:
+    image: confluentinc/cp-server:7.6.0
+    container_name: kafka
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    environment:
+      CLUSTER_ID: 'xVwOh_nFSfq2tXYyxPXDTQ'
+      KAFKA_BROKER_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@0.0.0.0:29093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:SASL_PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: 'INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093'
+      KAFKA_ADVERTISED_LISTENERS: 'INTERNAL://kafka:9092,EXTERNAL://${DOCHOSTNAME:?ERR_RUN_SETUP_ENV}:29092' 
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8085
+      KAFKA_LOG_DIRS: '/var/lib/kafka/data'
+
+      # enabling acls
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+
+      # Specify the sasl mechanisms enabled
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN #SCRAM-SHA-512
+
+      # specifying inter broker protocol
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN #SCRAM-SHA-512
+
+      # Security configuration for external listener
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/jaas.conf"
+
+      # connecting to external listener
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka:9092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      CONFLUENT_METRICS_REPORTER_SASL_MECHANISM: PLAIN
+      CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONFLUENT_METRICS_REPORTER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";'
+
+      # Configuring debugging level
+      KAFKA_LOG4J_ROOT_LOGLEVEL: 'INFO'
+      KAFKA_LOG4J_LOGGERS: 'kafka=INFO,kafka.controller=INFO,kafka.log.LogCleaner=INFO,state.change.logger=INFO,kafka.producer.async.DefaultEventHandler=INFO'
+      KAFKA_SASL_KERBEROS_SERVICE_NAME: kafka
+    volumes:
+      - ./kafka-data:/var/lib/kafka/data
+      - ./jaas.conf:/etc/kafka/jaas.conf
+
+  rest-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.kafka-rest
+    depends_on:
+      - kafka
+    ports:
+      - 8087:8087
+    hostname: rest-proxy
+    container_name: rest-proxy
+    environment:
+      KAFKA_REST_HOST_NAME: rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka:9092'
+      KAFKA_REST_LISTENERS: "http://rest-proxy:8087"
+      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8085'
+      KAFKA_REST_CONFLUENT_REST_AUTH_PROPAGATE_METHOD: JETTY_AUTH
+      KAFKA_REST_RESOURCE_EXTENSION_CLASS: 'io.confluent.kafkarest.security.KafkaRestSecurityResourceExtension'
+      KAFKA_REST_OPTS: '-Djava.security.auth.login.config=/etc/kafka/jaas.conf'
+
+      KAFKA_REST_CLIENT_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_REST_CLIENT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";'
+      KAFKA_REST_CLIENT_SASL_MECHANISM: PLAIN
+      # Add http auth
+#      KAFKA_REST_AUTHENTICATION_METHOD: BASIC
+#      KAFKA_REST_AUTHENTICATION_REALM: KafkaRest
+#      KAFKA_REST_AUTHENTICATION_ROLES: 'User'
+      KAFKA_REST_LOG4J_ROOT_LOGLEVEL: 'INFO'
+    volumes:
+      - ./jaas.conf:/etc/kafka/jaas.conf
+      - ./rest-passwords.properties:/etc/kafka/rest-passwords.properties
+
+  rest-proxy2:
+    build:
+      context: .
+      dockerfile: Dockerfile.kafka-rest
+    depends_on:
+      - kafka
+    ports:
+      - 8088:8088
+    hostname: rest-proxy2
+    container_name: rest-proxy2
+    environment:
+      KAFKA_REST_HOST_NAME: rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka:9092'
+      KAFKA_REST_LISTENERS: "http://rest-proxy2:8088"
+      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8085'
+      KAFKA_REST_CONFLUENT_REST_AUTH_PROPAGATE_METHOD: JETTY_AUTH
+      KAFKA_REST_RESOURCE_EXTENSION_CLASS: 'io.confluent.kafkarest.security.KafkaRestSecurityResourceExtension'
+      KAFKA_REST_OPTS: '-Djava.security.auth.login.config=/etc/kafka/jaas.conf'
+
+      KAFKA_REST_CLIENT_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_REST_CLIENT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="testuser_2" password="testuser_2";'
+      KAFKA_REST_CLIENT_SASL_MECHANISM: PLAIN
+      # Add http auth
+#      KAFKA_REST_AUTHENTICATION_METHOD: BASIC
+#      KAFKA_REST_AUTHENTICATION_REALM: KafkaRest
+#      KAFKA_REST_AUTHENTICATION_ROLES: 'User'
+      KAFKA_REST_LOG4J_ROOT_LOGLEVEL: 'INFO'
+    volumes:
+      - ./jaas.conf:/etc/kafka/jaas.conf
+      - ./rest-passwords.properties:/etc/kafka/rest-passwords.properties
+
+kafka-connect:
+    build:
+      context: .
+      dockerfile: Dockerfile.kafka-connect
+    container_name: kafka-connect
+    depends_on:
+      - kafka
+      - schema-registry
+      - postgres
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: 'kafka:29092'
+      CONNECT_REST_ADVERTISED_HOST_NAME: 'kafka-connect'
+      CONNECT_GROUP_ID: 'kafka-connect-group'
+      CONNECT_CONFIG_STORAGE_TOPIC: 'connect-configs'
+      CONNECT_OFFSET_STORAGE_TOPIC: 'connect-offsets'
+      CONNECT_STATUS_STORAGE_TOPIC: 'connect-status'
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: 'org.apache.kafka.connect.storage.StringConverter'
+      CONNECT_VALUE_CONVERTER: 'io.confluent.connect.json.JsonSchemaConverter'
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8085
+      CONNECT_REST_PORT: 8083
+      CONNECT_PLUGIN_PATH: '/usr/share/java,/usr/share/confluent-hub-components,/kafka-plugins'
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: 'org.reflections=ERROR'
+    volumes:
+      - ./plugins/kafka-plugins:/kafka-plugins
+      - ../metrics/sample-flat-schema-metric/config:/sample-flat-schema-metric-config
+      - ./scripts:/scripts
+      - ../metrics/sample-nested-schema-metric/config:/sample-nested-schema-metric-config
+    entrypoint: ["sh", "/scripts/init-kafka-connect.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:7.6.0
+    container_name: control-center
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka:29092'
+      CONTROL_CENTER_CONNECT_CONNECT_CLUSTER: 'kafka-connect:8083'
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8085'
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      CONTROL_CENTER_CONNECT_HEALTHCHECK_ENDPOINT: '/connectors'
+      CONTROL_CENTER_LOG4J_ROOT_LOGLEVEL: 'INFO'
+    depends_on:
+      - kafka
+      - schema-registry
+      - kafka-connect
+
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    container_name: schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8085:8085"
+    environment:
+      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka:29092
+      - SCHEMA_REGISTRY_HOST_NAME=${DOCHOSTNAME:?ERR_RUN_SETUP_ENV}
+      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8085
+      - SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:8085/subjects"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      
+  # cassandra:
+  #   image: cassandra:4.1.2
+  #   container_name: cassandra
+  #   ports:
+  #     - "9042:9042"
+  #   volumes:
+  #     - cassandra-data:/var/lib/cassandra
+
+  mysql:
+    image: mysql:8.0.33
+    container_name: mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: perf_server_database
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    ports:
+      - "8084:8081" # Mapping host port 8084 to container port 8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=root
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin_pass
+    depends_on:
+      - mongo
+
+  mongo-shell:
+    image: mongo
+    container_name: mongo-shell
+    command: ["sleep", "infinity"]
+    depends_on:
+      - mongo
+
+  # namenode:
+  #   image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+  #   container_name: namenode
+  #   restart: always
+  #   ports:
+  #     - 9870:9870
+  #     - 9000:9000
+  #   volumes:
+  #     - hadoop_namenode:/hadoop/dfs/name
+  #   environment:
+  #     - CLUSTER_NAME=test
+  #   env_file:
+  #     - ./src/streambed/config/hadoop/hadoop.env
+
+  # datanode:
+  #   image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+  #   container_name: datanode
+  #   restart: always
+  #   volumes:
+  #     - hadoop_datanode:/hadoop/dfs/data
+  #   environment:
+  #     SERVICE_PRECONDITION: "namenode:9870"
+  #   env_file:
+  #     - ./src/streambed/config/hadoop/hadoop.env
+  
+  # resourcemanager:
+  #   image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+  #   container_name: resourcemanager
+  #   restart: always
+  #   environment:
+  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
+  #   env_file:
+  #     - ./src/streambed/config/hadoop/hadoop.env
+
+  # nodemanager1:
+  #   image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+  #   container_name: nodemanager
+  #   restart: always
+  #   environment:
+  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+  #   env_file:
+  #     - ./src/streambed/config/hadoop/hadoop.env
+  
+  # historyserver:
+  #   image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+  #   container_name: historyserver
+  #   restart: always
+  #   environment:
+  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+  #   volumes:
+  #     - hadoop_historyserver:/hadoop/yarn/timeline
+  #   env_file:
+  #     - ./src/streambed/config/hadoop/hadoop.env
+
+volumes:
+  kafka-data:
+  connect-plugins:
+  cassandra-data:
+  mysql-data:
+  postgres-data:
+  mongo-data:
+  hadoop_namenode:
+  hadoop_datanode:
+  hadoop_historyserver:
+
+# networks:
+#   kafka-spark-network:
+#     name: kafka-spark-network
+#     driver: bridge
+
+networks:
+  default:
+    name: kafka-spark-network
+    driver: bridge

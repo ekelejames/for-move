@@ -1,0 +1,8 @@
+what you need to connect to the mongodb 
+> connection url
+> connection user
+> connection password
+> database name
+> collection name
+
+      the connector can create the database name and collection name

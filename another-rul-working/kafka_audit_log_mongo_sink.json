@@ -1,0 +1,36 @@
+{
+  "name": "connector1",
+  "config": {
+    "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+    "tasks.max": "1",
+    "topics": "confluent-audit-log-events",
+    "connection.uri": "mongodb://root:root@mongo:27017",
+    "database": "kafka_database_filtered",
+    "collection": "kafka_audit_log_collection_filtered",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schema.registry.url": "http://schema-registry:8085",
+    "value.converter.schemas.enable": "false",
+    "key.converter.schemas.enable": "false",
+    "errors.tolerance": "all",
+    "errors.log.enable": "true",
+
+    "transforms": "filter",
+    "transforms.filter.type" : "org.apache.kafka.connect.transforms.Filter",
+    "transforms.filter.predicate" : "excludeRecord",
+    "transforms.filter.negate" : "true",
+    
+    "predicates.excludeRecord.type" : "org.apache.kafka.connect.transforms.predicates.And",
+    "predicates.excludeRecord.predicate1" : "resourceTypeCheck",
+    "predicates.excludeRecord.predicate2" : "resourceNameCheck",
+    
+    "predicates.resourceTypeCheck.type" : "org.apache.kafka.connect.transforms.predicates.ValuePredicate",
+    "predicates.resourceTypeCheck.field" : "data.authorizationInfo.resourceType",
+    "predicates.resourceTypeCheck.value" : "Cluster",
+
+    "predicates.resourceNameCheck.type" : "org.apache.kafka.connect.transforms.predicates.ValuePredicate",
+    "predicates.resourceNameCheck.field" : "data.authorizationInfo.resourceName",
+    "predicates.resourceNameCheck.value" : "_confluent-link-metadata"
+
+  }
+}
